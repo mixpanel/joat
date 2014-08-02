@@ -48,7 +48,9 @@ class JOAT(object):
     scope = kwargs.get('scope', self.scope)
     issued_at = kwargs.get('issued_at', now)
     lifetime = kwargs.get('lifetime', self.default_lifetime)
+    jti = kwargs.get('jti', None)
 
+    # Make sure everything is present
     if (provider is None or
         client_id is None or
         user_id is None or
@@ -58,6 +60,7 @@ class JOAT(object):
       logging.debug("JOAT.issue_token called with a None param. Returning None")
       return None
 
+    # And the right type
     if not isinstance(scope, list):
       logging.debug("JOAT.issue_token called with an invalid scope: %s" % scope)
       logging.debug("Scope must be a list, but instead was %s" % scope.__class__)
@@ -73,6 +76,7 @@ class JOAT(object):
       logging.debug("lifetime must be a timedelta, but instead was %s" % datetime.__class__)
       return None
 
+    # Populate the claims
     expires = issued_at + lifetime
 
     claims = {
@@ -84,8 +88,13 @@ class JOAT(object):
       'exp': timegm(expires.utctimetuple())
     }
 
+    if jti is not None:
+      claims['jti'] = jti
+
+    # And generate the token
     secret = self.salt_generator(claims)
-
     token = jwt.encode(claims, secret)
-
     return token
+
+  def parse_token(self, token):
+    return None
