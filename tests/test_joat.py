@@ -5,18 +5,20 @@ import jwt
 import os
 import unittest
 
-import joat
+from joat import JOAT
 
 
 class TestJOAT(unittest.TestCase):
 
-  test_iat = 1406935214
-  test_exp = 1406940614 # 90 minutes later
+  test_iat_datetime = datetime.datetime(2014, 8, 2, 0, 59, 10)
+  test_iat_timestamp = 1406941150
+  test_exp_timedelta = datetime.timedelta(0, 5400)
+  test_exp_timestamp = 1406946550
 
   wrong_salt = '\xbb4;\xc7\xb2Vn\xa5\xb7\xb0^\xc6J%\x1d\x90\xb8Ik:'
 
 
-  def generate_salt(cls, token):
+  def generate_salt(cls, claims):
     """Use a constant salt for testing"""
     return '\xdaFw\xfb8\x9f\x9a\xb0\x87\xd3X2J!\x90\x1f\x05\xd6\xa5W'
 
@@ -25,16 +27,16 @@ class TestJOAT(unittest.TestCase):
       'typ': 'JWT',
       'alg': 'HS256'
     }
-    self.jwt_claim = {
+    self.jwt_claims = {
       'iss': 'My OAuth2 Provider',
-      'sub': '12345', # The resource owner's user_id
       'aud': 'abc123DEF', # The application's client_id
-      'iat': self.test_iat,
-      'exp': self.test_exp,
-      'scope': ['email', 'profile']
+      'sub': '12345', # The resource owner's user_id
+      'scope': ['email', 'profile'],
+      'iat': self.test_iat_timestamp,
+      'exp': self.test_exp_timestamp
     }
 
-    self.jwt_token = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxMjM0NSIsImlzcyI6Ik15IE9BdXRoMiBQcm92aWRlciIsImV4cCI6MTQwNjk0MDYxNCwic2NvcGUiOlsiZW1haWwiLCJwcm9maWxlIl0sImlhdCI6MTQwNjkzNTIxNCwiYXVkIjoiYWJjMTIzREVGIn0.jUEOEjbfVaKCM4rL9I1ghh_cES_9AHRdnNgL1iALuvg"
+    self.jwt_token = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxMjM0NSIsImlzcyI6Ik15IE9BdXRoMiBQcm92aWRlciIsImV4cCI6MTQwNjk0NjU1MCwic2NvcGUiOlsiZW1haWwiLCJwcm9maWxlIl0sImlhdCI6MTQwNjk0MTE1MCwiYXVkIjoiYWJjMTIzREVGIn0.2jWIf62vSDWPWdjv45JxtApXDjAhzjuCM3tuqOfZVIM"
 
     self.joat_payload = {
       'client': {
@@ -46,11 +48,20 @@ class TestJOAT(unittest.TestCase):
     }
 
 
+  def test_generate_without_salt(self):
+    joat = JOAT('My OAuth2 Provider', client_id='abc123DEF')
+    with self.assertRaises(NotImplementedError):
+      token = joat.issue_token(user_id='12345', scope=['email', 'profile'])
+
+
   def test_generate_token(self):
     joat = JOAT('My OAuth2 Provider', client_id='abc123DEF')
     joat.salt_generator = self.generate_salt
-    joat.default_lifetime = datetime.timedelta(minutes=90)
 
-    token = joat.issue_token(user_id='12345', scope=['email', 'profile'])
+    token = joat.issue_token(user_id='12345',
+        scope=['email', 'profile'],
+        issued_at=self.test_iat_datetime,
+        lifetime=self.test_exp_timedelta)
+
     self.assertEqual(token, self.jwt_token)
 
