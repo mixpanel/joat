@@ -3,6 +3,43 @@ import datetime
 import jwt
 import logging
 
+def timestamp(from_datetime):
+  return timegm(from_datetime.utctimetuple())
+
+def __salt_generator(self, claims):
+  """Generate a secret for the JOAT.
+
+  You need to implement this method in order to use the generator.
+
+  The JWT claims are passed into the generator so that you can access the
+  claims fields to generate the HMAC salt.  This is useful if you need the user
+  id to look up the salt in a database, or if you combine the other fields with
+  a secret to generate the salt.
+  """
+  logging.debug("salt_generator is not implemented!")
+  raise NotImplementedError
+
+salt_generator = __salt_generator
+
+def parse_token(token):
+  try:
+    claims, enc, header, sig = jwt.load(token)
+    salt = salt_generator(claims)
+    verified_claims = jwt.decode(token, salt)
+  except jwt.DecodeError as e:
+    # improperly formatted token
+    return None
+  except jwt.ExpiredSignature as e:
+    # token is expired, throw error
+    raise e
+
+  payload = {
+    'client_id': verified_claims['aud'],
+    'user_id': verified_claims['sub'],
+    'authorized_scope': verified_claims['scope']
+  }
+
+  return payload
 
 class JOAT(object):
   """A class that generates and parses JWT OAuth 2.0 Access Tokens.
@@ -20,17 +57,6 @@ class JOAT(object):
   scope = None
 
   default_lifetime = datetime.timedelta(hours=1)
-
-  def salt_generator(self, claims):
-    """Generate a secret for the token.
-
-    The JWT claims are passed in, in case you'd like to use (like iat)
-    some of the fields for generating an HMAC salt.
-
-    You need to implement this method in order to use the generator.
-    """
-    logging.debug("JOAT salt_generator was not implemented!")
-    raise NotImplementedError
 
   def __init__(self, name, client_id=None):
     self.provider_name = name
@@ -95,28 +121,3 @@ class JOAT(object):
     secret = self.salt_generator(claims)
     token = jwt.encode(claims, secret)
     return token
-
-  def parse_token(self, token):
-    try:
-      claims, enc, header, sig = jwt.load(token)
-      salt = self.salt_generator(claims)
-      verified_claims = jwt.decode(token, salt)
-    except jwt.DecodeError as e:
-      # improperly formatted token
-      return None
-    except jwt.ExpiredSignature as e:
-      # token is expired, throw error
-      raise e
-
-    if verified_claims['iss'] != self.provider_name:
-      # what makes sense here, raise?
-      # how could we have a valid-signed token with a different provider?
-      return None
-
-    payload = {
-      'client_id': verified_claims['aud'],
-      'user_id': verified_claims['sub'],
-      'authorized_scope': verified_claims['scope']
-    }
-
-    return payload
