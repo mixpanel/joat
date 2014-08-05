@@ -15,6 +15,7 @@ class TestTokenValidation(JOATTestCase):
     valid_token = jwt.encode(self.jwt_claims, self.generate_salt(self.jwt_claims))
 
     cred = joat.parse_token(valid_token)
+    self.assertEqual(cred.provider, jwt_claims['iss'])
     self.assertEqual(cred.user_id, jwt_claims['sub'])
     self.assertEqual(cred.client_id, jwt_claims['aud'])
     self.assertEqual(cred.scope, jwt_claims['scp'])
