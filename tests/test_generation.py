@@ -1,3 +1,4 @@
+import base64
 import datetime
 import jwt
 
@@ -9,10 +10,10 @@ class TestTokenGeneration(JOATTestCase):
   def setUp(self):
     super(TestTokenGeneration, self).setUp()
     self.joat = JOAT("My OAuth2 Provider")
+    self.joat.client_id = 'abc123DEF'
     self.joat.salt_generator = self.generate_salt
 
   def test_generate_token(self):
-    self.joat.client_id = 'abc123DEF'
     token = self.joat.issue_token(user_id='12345',
         scope=['email', 'profile'],
         issued_at=self.test_iat_datetime,
@@ -53,11 +54,11 @@ class TestTokenGeneration(JOATTestCase):
     self.assertIsNotNone(token)
 
   def test_using_claim_data_in_salt(self):
-    jti = random_bytes()
+    jti = base64.urlsafe_b64encode(random_bytes())
     claims = self.jwt_claims
     claims['jti'] = jti
 
-    def generate_custom_salt(cls, claims):
+    def generate_custom_salt(claims):
       if claims is None:
         return "foobar"
 

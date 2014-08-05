@@ -1,5 +1,6 @@
 import datetime
 import jwt
+import time
 
 from .helper import JOATTestCase, random_bytes, timestamp
 from joat import JOAT
@@ -22,3 +23,16 @@ class TestTokenValidation(JOATTestCase):
 
     token_data = self.joat.parse_token(invalid_token)
     self.assertIsNone(token_data)
+
+  def test_validate_expired_token(self):
+    lifetime = datetime.timedelta(seconds=2)
+
+    self.joat.client_id = 'abc123DEF'
+    token = self.joat.issue_token(user_id='12345',
+                                  scope=['email', 'profile'],
+                                  lifetime=lifetime)
+
+    time.sleep(3)
+
+    with self.assertRaises(jwt.ExpiredSignature):
+      self.joat.parse_token(token)

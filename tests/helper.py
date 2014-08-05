@@ -44,10 +44,7 @@ class JOATTestCase(unittest.TestCase):
     self.jwt_token = jwt.encode(self.jwt_claims, self.generate_salt(self.jwt_claims))
 
     self.joat_payload = {
-      'client': {
-        'id': 'abc123DEF',
-        'name': 'My OAuth2 Provider'
-      },
+      'client_id': 'abc123DEF',
       'user_id': '12345',
       'authorized_scope': ['email', 'profile']
     }

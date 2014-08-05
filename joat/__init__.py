@@ -97,4 +97,26 @@ class JOAT(object):
     return token
 
   def parse_token(self, token):
-    return None
+    try:
+      claims, enc, header, sig = jwt.load(token)
+      salt = self.salt_generator(claims)
+      verified_claims = jwt.decode(token, salt)
+    except jwt.DecodeError as e:
+      # improperly formatted token
+      return None
+    except jwt.ExpiredSignature as e:
+      # token is expired, throw error
+      raise e
+
+    if verified_claims['iss'] != self.provider_name:
+      # what makes sense here, raise?
+      # how could we have a valid-signed token with a different provider?
+      return None
+
+    payload = {
+      'client_id': verified_claims['aud'],
+      'user_id': verified_claims['sub'],
+      'authorized_scope': verified_claims['scope']
+    }
+
+    return payload
