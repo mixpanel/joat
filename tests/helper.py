@@ -5,8 +5,7 @@ import jwt
 import os
 import unittest
 
-def timestamp(from_datetime):
-  return timegm(from_datetime.utctimetuple())
+from joat import timestamp
 
 def random_bytes():
   return hashlib.sha1(os.urandom(128)).digest()
@@ -36,7 +35,7 @@ class JOATTestCase(unittest.TestCase):
       'iss': 'My OAuth2 Provider',
       'aud': 'abc123DEF', # The application's client_id
       'sub': '12345', # The resource owner's user_id
-      'scope': ['email', 'profile'],
+      'scp': ['email', 'profile'],
       'iat': self.test_iat_timestamp,
       'exp': self.test_exp_timestamp
     }
