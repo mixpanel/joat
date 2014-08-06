@@ -37,14 +37,14 @@ class TestTokenGeneration(JOATTestCase):
   def test_generate_token_missing_client_id(self):
     token_gen = joat.TokenGenerator("My Provider")
 
-    with self.assertRaises(ArgumentError):
+    with self.assertRaises(TypeError):
       token = self.token_generator.issue_token()
 
 
   def test_generate_token_missing_user(self):
     token_gen = joat.TokenGenerator("My Provider")
 
-    with self.assertRaises(ArgumentError):
+    with self.assertRaises(TypeError):
       token = self.token_generator.issue_token(client_id="abc123DEF")
 
 

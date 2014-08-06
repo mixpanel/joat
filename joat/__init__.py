@@ -1,3 +1,5 @@
+from __future__ import unicode_literals
+
 from calendar import timegm
 import datetime
 import jwt
@@ -6,7 +8,7 @@ import logging
 def timestamp(from_datetime):
   return timegm(from_datetime.utctimetuple())
 
-def __salt_generator(self, claims):
+def __salt_generator(claims):
   """Generate a secret for the JOAT.
 
   You need to implement this method in order to use the generator.
@@ -22,6 +24,11 @@ def __salt_generator(self, claims):
 salt_generator = __salt_generator
 
 def parse_token(token):
+  """Parses a JWT OAuth 2.0 Access Token into a joat.Token object.
+
+  Raises an ExpiredSignature exception if the token is expired.
+  Returns None in other cases of invalidity."""
+
   try:
     claims, enc, header, sig = jwt.load(token)
     salt = salt_generator(claims)
@@ -34,28 +41,25 @@ def parse_token(token):
     raise e
 
   payload = {
+    'provider': verified_claims['iss'],
     'client_id': verified_claims['aud'],
     'user_id': verified_claims['sub'],
-    'authorized_scope': verified_claims['scope']
+    'authorized_scope': verified_claims['scp']
   }
 
   return payload
 
-class JOAT(object):
-  """A class that generates and parses JWT OAuth 2.0 Access Tokens.
+class TokenGenerator(object):
+  """A class that generates JWT OAuth 2.0 Access Tokens.
 
-  Each instance of the class is tied to a particular OAuth 2.0 client
-  for token generation convenience.  The fields of the client and user
-  are populated during token parsing if the token is valid.
+  Each instance of TokenGenerator is necessarily tied to a provider, and
+  may also be tied to a user and/or an OAuth client.
   """
 
   provider_name = None
   client_id = None
-
   user_id = None
-
   scope = None
-
   default_lifetime = datetime.timedelta(hours=1)
 
   def __init__(self, name, client_id=None):
@@ -109,7 +113,7 @@ class JOAT(object):
       'iss': provider,
       'aud': client_id,
       'sub': user_id,
-      'scope': scope,
+      'scp': scope,
       'iat': timegm(issued_at.utctimetuple()),
       'exp': timegm(expires.utctimetuple())
     }
@@ -118,6 +122,6 @@ class JOAT(object):
       claims['jti'] = jti
 
     # And generate the token
-    secret = self.salt_generator(claims)
+    secret = salt_generator(claims)
     token = jwt.encode(claims, secret)
     return token

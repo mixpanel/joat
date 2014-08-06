@@ -8,6 +8,7 @@ def some_salt_generator(claims):
 class TestSaltGenerator(JOATTestCase):
 
   def setUp(self):
+    super(TestSaltGenerator, self).setUp()
     reload(joat)
 
   def test_create_token_generator_without_setting_salter(self):
@@ -23,5 +24,5 @@ class TestSaltGenerator(JOATTestCase):
       joat.parse_token(self.jwt_token)
 
   def test_validate_token_after_setting_salter(self):
-    joat.salt_generator = self.salt_generator
+    joat.salt_generator = self.generate_salt
     token = joat.parse_token(self.jwt_token)
