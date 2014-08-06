@@ -27,7 +27,7 @@ class TestTokenValidation(JOATTestCase):
     self.assertIsNone(credential)
 
   def test_validate_expired_token(self):
-    lifetime = datetime.timedelta(seconds=2)
+    lifetime = datetime.timedelta(seconds=1)
 
     generator = joat.TokenGenerator("My Provider")
     generator.client_id = 'abc123DEF'
@@ -35,7 +35,7 @@ class TestTokenValidation(JOATTestCase):
                                   scope=['email', 'profile'],
                                   lifetime=lifetime)
 
-    time.sleep(3)
+    time.sleep(2)
 
     with self.assertRaises(jwt.ExpiredSignature):
       joat.parse_token(token)

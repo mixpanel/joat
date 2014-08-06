@@ -52,12 +52,12 @@ class TestTokenGeneration(JOATTestCase):
     token_gen = joat.TokenGenerator("My Provider")
     token_gen.client_id = "abc123DEF"
 
-    token = token_gen.issue_token(user_id="12345")
-    self.assertIsNone(token)
+    with self.assertRaises(TypeError):
+      token = self.token_generator.issue_token(user_id="12345")
 
     token_gen.user_id = "12345"
-    token = token_gen.issue_token()
-    self.assertIsNone(token)
+    with self.assertRaises(TypeError):
+      token = self.token_generator.issue_token()
 
 
   def test_generate_token_default_iat_lifetime(self):

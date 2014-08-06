@@ -8,7 +8,7 @@ import logging
 def timestamp(from_datetime):
   return timegm(from_datetime.utctimetuple())
 
-def __salt_generator(claims):
+def _salt_generator(claims):
   """Generate a secret for the JOAT.
 
   You need to implement this method in order to use the generator.
@@ -21,7 +21,7 @@ def __salt_generator(claims):
   logging.debug("salt_generator is not implemented!")
   raise NotImplementedError
 
-salt_generator = __salt_generator
+salt_generator = _salt_generator
 
 def parse_token(token):
   """Parses a JWT OAuth 2.0 Access Token into a joat.Token object.
@@ -65,6 +65,8 @@ class TokenGenerator(object):
   def __init__(self, name, client_id=None):
     self.provider_name = name
     self.client_id = client_id
+    if salt_generator == _salt_generator:
+      raise NotImplementedError("You must set the JOAT salt generator before initializing a TokenGenerator")
 
   def issue_token(self, **kwargs):
     """Issue an access token to the client for the user and scope provided."""
@@ -81,30 +83,23 @@ class TokenGenerator(object):
     jti = kwargs.get('jti', None)
 
     # Make sure everything is present
-    if (provider is None or
-        client_id is None or
-        user_id is None or
-        scope is None or
-        issued_at is None or
-        lifetime is None):
-      logging.debug("JOAT.issue_token called with a None param. Returning None")
-      return None
+    if provider is None:
+      raise TypeError("Cannot issue a JOAT without a provider name")
 
-    # And the right type
-    if not isinstance(scope, list):
-      logging.debug("JOAT.issue_token called with an invalid scope: %s" % scope)
-      logging.debug("Scope must be a list, but instead was %s" % scope.__class__)
-      return None
+    if client_id is None:
+      raise TypeError("Cannot issue a JOAT without a client_id")
 
-    if not isinstance(issued_at, datetime.datetime):
-      logging.debug("JOAT.issue_token called with an invalid issued_at: %s" % issued_at)
-      logging.debug("issued_at must be a datetime, but instead was %s" % datetime.__class__)
-      return None
+    if user_id is None:
+      raise TypeError("Cannot issue a JOAT without a user_id")
 
-    if not isinstance(lifetime, datetime.timedelta):
-      logging.debug("JOAT.issue_token called with an invalid lifetime: %s" % lifetime)
-      logging.debug("lifetime must be a timedelta, but instead was %s" % datetime.__class__)
-      return None
+    if scope is None or not isinstance(scope, list):
+      raise TypeError("Invalid scope.  Must be a list of permissions, and cannot be None.")
+
+    if issued_at is None or not isinstance(issued_at, datetime.datetime):
+      raise TypeError("Invalid issued_at.  Token must be issued at some datetime.datetime.")
+
+    if lifetime is None or not isinstance(lifetime, datetime.timedelta):
+      raise TypeError("Invalid JOAT lifetime.  Lifetime must be datetime.timedelta")
 
     # Populate the claims
     expires = issued_at + lifetime
