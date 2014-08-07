@@ -1,16 +1,13 @@
-from setuptools import setup, find_packages
-from codecs import open
+from setuptools import setup
 from os import path
 
-here = path.abspath(path.dirname(__file__))
-
-with open(path.join(here, 'README.md'), encoding='utf-8') as f:
-  long_description = f.read()
+with open(path.join(path.dirname(__file__), 'README.md')) as readme:
+  long_description = readme.read()
 
 
 setup(
   name="PyJOAT",
-  version="1.0.0",
+  version="1.0.1",
   author="R. Kevin Nelson",
   author_email="kevin@rkn.la",
   description="JWT OAuth 2.0 Access Token management",
