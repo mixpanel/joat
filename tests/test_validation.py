@@ -37,5 +37,4 @@ class TestTokenValidation(JOATTestCase):
 
     time.sleep(2)
 
-    with self.assertRaises(jwt.ExpiredSignature):
-      joat.parse_token(token)
+    self.assertIsNone(joat.parse_token(token))

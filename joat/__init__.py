@@ -37,8 +37,8 @@ def parse_token(token):
     # improperly formatted token
     return None
   except jwt.ExpiredSignature as e:
-    # token is expired, throw error
-    raise e
+    # token is expired, return none
+    return None
 
   payload = {
     'provider': verified_claims['iss'],
