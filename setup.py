@@ -7,7 +7,7 @@ with open(path.join(path.dirname(__file__), 'README.md')) as readme:
 
 setup(
   name="PyJOAT",
-  version="1.0.1",
+  version="1.1.0",
   author="R. Kevin Nelson",
   author_email="kevin@rkn.la",
   description="JWT OAuth 2.0 Access Token management",
