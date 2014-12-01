@@ -19,6 +19,7 @@ class TestTokenValidation(JOATTestCase):
     self.assertEqual(cred['user_id'], self.jwt_claims['sub'])
     self.assertEqual(cred['client_id'], self.jwt_claims['aud'])
     self.assertListEqual(cred['authorized_scope'], self.jwt_claims['scp'])
+    self.assertEqual(cred['jti'], self.jwt_claims['jti'])
 
   def test_validate_with_incorrect_salt(self):
     invalid_token = jwt.encode(self.jwt_claims, self.generate_wrong_salt(None))

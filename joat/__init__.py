@@ -47,6 +47,9 @@ def parse_token(token):
     'authorized_scope': verified_claims['scp']
   }
 
+  if 'jti' in verified_claims:
+    payload['jti'] = verified_claims['jti']
+
   return payload
 
 class TokenGenerator(object):

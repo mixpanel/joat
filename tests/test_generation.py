@@ -20,7 +20,8 @@ class TestTokenGeneration(JOATTestCase):
     token = self.token_generator.issue_token(user_id='12345',
         scope=['email', 'profile'],
         issued_at=self.test_iat_datetime,
-        lifetime=self.test_exp_timedelta)
+        lifetime=self.test_exp_timedelta,
+        jti=self.jwt_claims['jti']) # tautology alert
 
     try:
       decoded = jwt.decode(token, self.generate_salt(token))
@@ -108,8 +109,10 @@ class TestTokenGeneration(JOATTestCase):
 
     # but this one should
     salted_token_data = joat.parse_token(salted_token)
+    expected_payload = self.joat_payload
+    expected_payload.update({'jti': jti})
     self.assertIsNotNone(salted_token_data)
-    self.assertDictEqual(salted_token_data, self.joat_payload)
+    self.assertDictEqual(salted_token_data, expected_payload)
 
     # restore the original salt generator
     joat.salt_generator = self.generate_salt

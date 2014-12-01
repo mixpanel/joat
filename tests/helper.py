@@ -5,6 +5,7 @@ import datetime
 import hashlib
 import jwt
 import os
+import random
 import unittest
 
 from joat import timestamp
@@ -39,7 +40,8 @@ class JOATTestCase(unittest.TestCase):
       'sub': '12345', # The resource owner's user_id
       'scp': ['email', 'profile'],
       'iat': self.test_iat_timestamp,
-      'exp': self.test_exp_timestamp
+      'exp': self.test_exp_timestamp,
+      'jti': random.randint(0,100)
     }
 
     self.jwt_token = jwt.encode(self.jwt_claims, self.generate_salt(self.jwt_claims))
